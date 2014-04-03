@@ -1,0 +1,35 @@
+{
+    "name": "repro",
+    "description": "Reverse Proxy Route Table responsible for routing to targets based on protocol request headers.",
+    "author": "Tony Tahmouch <ttahmouch@gmail.com>",
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "https://github.com/ttahmouch/repro/blob/master/LICENSE.md"
+        }
+    ],
+    "version": "0.0.1",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo 'Error: no test specified' && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/ttahmouch/repro.git"
+    },
+    "keywords": [
+        "reverse",
+        "proxy",
+        "route",
+        "table",
+        "repro",
+        "http",
+        "host",
+        "port",
+        "url",
+        "path"
+    ],
+    "bugs": {
+        "url": "https://github.com/ttahmouch/repro/issues"
+    }
+}
