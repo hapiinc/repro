@@ -132,9 +132,17 @@ Repro.method('setPort', function (port) {
  * - 127.0.0.1
  * - api.example.co:80
  * - 127.0.0.1:80
+ * @param options is an {Object} indicative of settings to be used when encoding a URL {String}. These may be used to
+ * override the default settings. It is optional.
+ * Example:
+ * {
+ *     scheme: 'ssh',
+ *     host: '127.0.0.1',
+ *     port: '22'
+ * }
  * @return is an encoded URL {String}, if successful; otherwise, empty {String}.
  */
-Repro.method('onShouldFormatUrl', function (route) {
+Repro.method('onShouldFormatUrl', function (route, options) {
     /**
      * If the argument is a {String} that looks like:
      * - Port: 22, 80, 443
@@ -146,9 +154,10 @@ Repro.method('onShouldFormatUrl', function (route) {
      */
     var isPort = !!this._isPort.exec(route),
         isHostPort = !!this._isHostPort.exec(route),
-        scheme = this._scheme,
-        host = this._host,
-        port = this._port,
+        hasOptions = !!options && typeof options === 'object',
+        scheme = hasOptions && !!this._isScheme.exec(options.scheme) ? options.scheme : this._scheme,
+        host = hasOptions && !!this._isHost.exec(options.host) ? options.host : this._host,
+        port = hasOptions && !!this._isPort.exec(options.port) ? options.port : this._port,
         url = '';
     if (isPort || isHostPort) {
         /**
@@ -180,8 +189,17 @@ Repro.method('onShouldFormatUrl', function (route) {
 /**
  * Accessor method to allow for the setting of the format URL delegate function.
  *
- * @param delegate should be a delegate function that accepts one {String} argument and returns an encoded URL {String}
- * if successful, and an empty {String} if failure. See the default delegate above.
+ * @param delegate should be a delegate function with an arity of two. See the default delegate above.
+ *
+ * Example:
+ * function (route, options) {
+ *     return url;
+ * }
+ * Route is a {String} indicative of an RFC 2396 grammar compliant port or host:port.
+ * Options is an {Object} indicative of settings to be used when encoding a URL {String}. These may be used to
+ * override the default settings. It is optional.
+ * Url is an encoded URL {String}, if successful; otherwise, empty {String}.
+ *
  * @return {*} for chaining.
  */
 Repro.method('setShouldFormatUrlDelegate', function (delegate) {
@@ -204,12 +222,22 @@ Repro.method('setShouldFormatUrlDelegate', function (delegate) {
  * In this example, the Host domains may yield the same IP Address from a DNS lookup, but the reverse proxy route table
  * expects the protocol Host headers to distinguish what Host the request was meant for, and route to the
  * respective, internal Port.
+ *
+ * @param options is an {Object} indicative of settings to be used when encoding a URL {String}. These may be used to
+ * override the default settings. It is optional.
+ * Example:
+ * {
+ *     scheme: 'ssh',
+ *     host: '127.0.0.1',
+ *     port: '22'
+ * }
+ *
  * @return {*} for chaining.
  */
-Repro.method('addRoutes', function (routes) {
+Repro.method('addRoutes', function (routes, options) {
     if (!!routes && typeof routes === 'object') {
         for (var route in routes) {
-            this.addRoute(route, routes[route]);
+            this.addRoute(route, routes[route], options);
         }
     }
     return this;
@@ -240,13 +268,23 @@ Repro.method('removeRoutes', function () {
  * In this example, the Host domains may yield the same IP Address from a DNS lookup, but the reverse proxy route table
  * expects the protocol Host headers to distinguish what Host the request was meant for, and route to the
  * respective, internal Port.
+ *
+ * @param options is an {Object} indicative of settings to be used when encoding a URL {String}. These may be used to
+ * override the default settings. It is optional.
+ * Example:
+ * {
+ *     scheme: 'ssh',
+ *     host: '127.0.0.1',
+ *     port: '22'
+ * }
+ *
  * @return {*} for chaining.
  */
-Repro.method('replaceRoutes', function (routes) {
+Repro.method('replaceRoutes', function (routes, options) {
     if (!!routes && typeof routes === 'object') {
         this
             .removeRoutes()
-            .addRoutes(routes);
+            .addRoutes(routes, options);
     }
     return this;
 });
@@ -265,11 +303,20 @@ Repro.method('replaceRoutes', function (routes) {
  * - 127.0.0.1
  * - 8080
  *
+ * @param options is an {Object} indicative of settings to be used when encoding a URL {String}. These may be used to
+ * override the default settings. It is optional.
+ * Example:
+ * {
+ *     scheme: 'ssh',
+ *     host: '127.0.0.1',
+ *     port: '22'
+ * }
+ *
  * @return {*} for chaining.
  */
-Repro.method('addRoute', function (route, target) {
-    var routeUrl = this.onShouldFormatUrl(route),
-        targetUrl = this.onShouldFormatUrl(target);
+Repro.method('addRoute', function (route, target, options) {
+    var routeUrl = this.onShouldFormatUrl(route, options),
+        targetUrl = this.onShouldFormatUrl(target, options);
     if (!!routeUrl && !!targetUrl) {
         this._routes[routeUrl] = targetUrl;
     }
@@ -287,10 +334,20 @@ Repro.method('addRoute', function (route, target) {
  * - api.example.com
  * - 127.0.0.1
  * - 8080
+ *
+ * @param options is an {Object} indicative of settings to be used when encoding a URL {String}. These may be used to
+ * override the default settings. It is optional.
+ * Example:
+ * {
+ *     scheme: 'ssh',
+ *     host: '127.0.0.1',
+ *     port: '22'
+ * }
+ *
  * @return {*} for chaining.
  */
-Repro.method('removeRoute', function (route) {
-    var routeUrl = this.onShouldFormatUrl(route);
+Repro.method('removeRoute', function (route, options) {
+    var routeUrl = this.onShouldFormatUrl(route, options);
     if (!!routeUrl) {
         delete this._routes[routeUrl];
     }
@@ -308,10 +365,20 @@ Repro.method('removeRoute', function (route) {
  * - api.example.com
  * - 127.0.0.1
  * - 8080
+ *
+ * @param options is an {Object} indicative of settings to be used when encoding a URL {String}. These may be used to
+ * override the default settings. It is optional.
+ * Example:
+ * {
+ *     scheme: 'ssh',
+ *     host: '127.0.0.1',
+ *     port: '22'
+ * }
+ *
  * @return should be a URL {String} if a target destination exists; {undefined}, otherwise.
  */
-Repro.method('getTarget', function (route) {
-    return this._routes[this.onShouldFormatUrl(route)];
+Repro.method('getTarget', function (route, options) {
+    return this._routes[this.onShouldFormatUrl(route, options)];
 });
 
 /**
@@ -326,10 +393,20 @@ Repro.method('getTarget', function (route) {
  * - api.example.com
  * - 127.0.0.1
  * - 8080
+ *
+ * @param options is an {Object} indicative of settings to be used when encoding a URL {String}. These may be used to
+ * override the default settings. It is optional.
+ * Example:
+ * {
+ *     scheme: 'ssh',
+ *     host: '127.0.0.1',
+ *     port: '22'
+ * }
+ *
  * @return should be a {Boolean} true if a target destination exists; {Boolean} false, otherwise.
  */
-Repro.method('hasTarget', function (route) {
-    return !!this._routes[this.onShouldFormatUrl(route)];
+Repro.method('hasTarget', function (route, options) {
+    return !!this._routes[this.onShouldFormatUrl(route, options)];
 });
 
 /**

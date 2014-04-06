@@ -32,3 +32,5 @@ In lieu of a formal style guideline, take care to maintain the existing coding s
 ## Release History
 
 + 0.0.1 Initial release
++ 0.0.2 Added an optional argument to every method dealing with routes and targets. The argument allows for inlining
+        default schemes, ports, and hosts to all these methods.
